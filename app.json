@@ -5,19 +5,31 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0A0A0A"
+    },
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.myplayer.app"
+      "bundleIdentifier": "com.zeeshan.myplayer"
     },
     "android": {
-      "package": "com.myplayer.app",
+      "package": "com.zeeshan.myplayer",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0A0A0A"
+      },
       "permissions": [
         "READ_EXTERNAL_STORAGE",
+        "READ_MEDIA_VIDEO",
         "WRITE_EXTERNAL_STORAGE",
-        "FOREGROUND_SERVICE"
+        "FOREGROUND_SERVICE",
+        "WRITE_SETTINGS"
       ]
     },
     "plugins": [
@@ -43,7 +55,8 @@
           ]
         }
       ],
-      "expo-document-picker"
+      "expo-document-picker",
+      "expo-screen-orientation"
     ]
   }
 }

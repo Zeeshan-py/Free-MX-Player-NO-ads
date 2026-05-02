@@ -9,6 +9,7 @@ import HomeScreen from './src/screens/HomeScreen';
 import FolderScreen from './src/screens/FolderScreen';
 import PlayerScreen from './src/screens/PlayerScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import { SettingsProvider } from './src/hooks/useSettings';
 
 const Stack = createStackNavigator();
 
@@ -27,48 +28,50 @@ const navigationTheme = {
 export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <NavigationContainer theme={navigationTheme}>
-        <StatusBar barStyle="light-content" backgroundColor="#0A0A0A" />
-        <Stack.Navigator
-          initialRouteName="Home"
-          screenOptions={{
-            headerStyle: {
-              backgroundColor: '#1A1A1A',
-              elevation: 0,
-              shadowOpacity: 0,
-            },
-            headerTintColor: '#FFFFFF',
-            headerTitleStyle: {
-              fontSize: 18,
-              fontWeight: '600',
-            },
-            cardStyle: {
-              backgroundColor: '#0A0A0A',
-            },
-          }}
-        >
-          <Stack.Screen
-            name="Home"
-            component={HomeScreen}
-            options={{ title: 'MyPlayer' }}
-          />
-          <Stack.Screen
-            name="Folders"
-            component={FolderScreen}
-            options={{ title: 'Folders' }}
-          />
-          <Stack.Screen
-            name="Player"
-            component={PlayerScreen}
-            options={{ title: 'Player' }}
-          />
-          <Stack.Screen
-            name="Settings"
-            component={SettingsScreen}
-            options={{ title: 'Settings' }}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
+      <SettingsProvider>
+        <NavigationContainer theme={navigationTheme}>
+          <StatusBar barStyle="light-content" backgroundColor="#0A0A0A" />
+          <Stack.Navigator
+            initialRouteName="Home"
+            screenOptions={{
+              headerStyle: {
+                backgroundColor: '#1A1A1A',
+                elevation: 0,
+                shadowOpacity: 0,
+              },
+              headerTintColor: '#FFFFFF',
+              headerTitleStyle: {
+                fontSize: 18,
+                fontWeight: '600',
+              },
+              cardStyle: {
+                backgroundColor: '#0A0A0A',
+              },
+            }}
+          >
+            <Stack.Screen
+              name="Home"
+              component={HomeScreen}
+              options={{ title: 'MyPlayer' }}
+            />
+            <Stack.Screen
+              name="Folders"
+              component={FolderScreen}
+              options={{ title: 'Folders' }}
+            />
+            <Stack.Screen
+              name="Player"
+              component={PlayerScreen}
+              options={{ title: 'Player' }}
+            />
+            <Stack.Screen
+              name="Settings"
+              component={SettingsScreen}
+              options={{ title: 'Settings' }}
+            />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </SettingsProvider>
     </GestureHandlerRootView>
   );
 }

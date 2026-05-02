@@ -1,31 +1,35 @@
 # MyPlayer
 
-A React Native video player application with support for multiple video sources, playback controls, and subtitle management.
+MyPlayer is an ad-free Android video player built with React Native, Expo, and VLC playback.
 
-## Features
+## Requirements
 
-- Video playback with custom controls
-- Gesture-based overlay controls
-- Subtitle support
-- Media library management
-- Settings screen
-- Responsive UI
+- Node.js `20.19+` recommended
+- Expo CLI via `npx`
+- EAS CLI for cloud builds: `npm install -g eas-cli`
 
-## Installation
+## Run Locally
 
 ```bash
 npm install
+npx expo start
 ```
 
-## Usage
+## Build APK
 
 ```bash
-npm start
+eas build --platform android
 ```
+
+## Notes
+
+- This project uses custom native code through `react-native-vlc-media-player`, so use a development build instead of Expo Go for full playback testing.
+- App package name: `com.zeeshan.myplayer`
+- App version: `1.0.0`
 
 ## Project Structure
 
-- `src/components/` - React components
-- `src/hooks/` - Custom React hooks
-- `src/screens/` - Application screens
-- `src/utils/` - Utility functions
+- `src/components/` reusable UI components
+- `src/hooks/` shared hooks and settings store
+- `src/screens/` app screens
+- `src/utils/` helpers

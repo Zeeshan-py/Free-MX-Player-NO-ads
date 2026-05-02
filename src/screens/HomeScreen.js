@@ -19,8 +19,7 @@ import * as MediaLibrary from 'expo-media-library';
 import * as FileSystem from 'expo-file-system/legacy';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 
-import VideoCard from '../components/VideoCard';
-import formatTime from '../utils/formatTime';
+import VideoCard, { VIDEO_CARD_ITEM_HEIGHT } from '../components/VideoCard';
 
 const ALLOWED_EXTENSIONS = new Set(['mp4', 'mkv', 'avi', 'mov', 'flv', '3gp']);
 const SORT_OPTIONS = [
@@ -48,6 +47,17 @@ function getFolderNameFromUri(uri = '') {
   }
 
   return segments[segments.length - 2];
+}
+
+function getFolderPathFromUri(uri = '') {
+  const sanitizedUri = decodeURIComponent(uri).replace('file://', '').split('?')[0];
+  const segments = sanitizedUri.split('/').filter(Boolean);
+
+  if (segments.length < 2) {
+    return '';
+  }
+
+  return segments.slice(0, -1).join('/');
 }
 
 function formatSizeInMb(bytes = 0) {
@@ -92,12 +102,14 @@ async function buildVideoItem(asset) {
     id: asset.id,
     assetId: asset.id,
     uri: localUri || asset.uri,
+    thumbnailCacheUri: localUri || asset.uri,
     thumbnailUri: localUri || asset.uri,
     filename: asset.filename,
     title: stripExtension(asset.filename),
     duration: asset.duration || 0,
     sizeBytes,
     folderName: getFolderNameFromUri(localUri || asset.uri),
+    folderPath: getFolderPathFromUri(localUri || asset.uri),
     creationTime: asset.creationTime || 0,
     modificationTime: asset.modificationTime || 0,
   };
@@ -138,6 +150,10 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.headerActions}>
           <HeaderActionButton iconName="search-outline" onPress={toggleSearch} />
           <HeaderActionButton iconName="swap-vertical-outline" onPress={toggleSortMenu} />
+          <HeaderActionButton
+            iconName="settings-outline"
+            onPress={() => navigation.navigate('Settings')}
+          />
         </View>
       ),
     });
@@ -227,11 +243,13 @@ export default function HomeScreen({ navigation }) {
 
   const openPlayer = useCallback(
     (video) => {
+      const selectedIndex = filteredVideos.findIndex((item) => item.id === video.id);
+
       navigation.navigate('Player', {
         videoUri: video.uri,
+        videoList: filteredVideos,
+        currentIndex: selectedIndex >= 0 ? selectedIndex : 0,
         currentVideo: video,
-        videos: filteredVideos,
-        initialIndex: filteredVideos.findIndex((item) => item.id === video.id),
       });
     },
     [filteredVideos, navigation]
@@ -243,6 +261,7 @@ export default function HomeScreen({ navigation }) {
 
       navigation.navigate('Folders', {
         folderName,
+        folderPath: folderVideos[0]?.folderPath || getFolderPathFromUri(folderVideos[0]?.uri || ''),
         videos: folderVideos,
       });
     },
@@ -252,12 +271,15 @@ export default function HomeScreen({ navigation }) {
   const renderVideoCard = useCallback(
     ({ item }) => (
       <VideoCard
-        duration={formatTime(item.duration)}
-        folderName={item.folderName}
+        onDeleteFromList={(video) => {
+          setVideos((current) => current.filter((entry) => entry.id !== video.id));
+        }}
         onPress={() => openPlayer(item)}
-        size={formatSizeInMb(item.sizeBytes)}
-        thumbnailUri={item.thumbnailUri}
-        title={item.title}
+        video={{
+          ...item,
+          fileSize: formatSizeInMb(item.sizeBytes),
+          thumbnail: item.thumbnailUri,
+        }}
       />
     ),
     [openPlayer]
@@ -391,6 +413,12 @@ export default function HomeScreen({ navigation }) {
       <FlatList
         contentContainerStyle={styles.listContent}
         data={filteredVideos}
+        getItemLayout={(_, index) => ({
+          length: VIDEO_CARD_ITEM_HEIGHT,
+          offset: VIDEO_CARD_ITEM_HEIGHT * index,
+          index,
+        })}
+        initialNumToRender={8}
         keyExtractor={(item) => item.id}
         ListEmptyComponent={
           <View style={styles.emptyListState}>
@@ -403,11 +431,18 @@ export default function HomeScreen({ navigation }) {
                 ? 'Try a different search term or clear the search.'
                 : 'Supported files will appear here after they are detected on your device.'}
             </Text>
+            {!searchQuery ? (
+              <Pressable onPress={scanVideos} style={styles.primaryButton}>
+                <Text style={styles.primaryButtonText}>Rescan Library</Text>
+              </Pressable>
+            ) : null}
           </View>
         }
         ListHeaderComponent={listHeader}
+        removeClippedSubviews
         renderItem={renderVideoCard}
         showsVerticalScrollIndicator={false}
+        windowSize={7}
       />
     </View>
   );
