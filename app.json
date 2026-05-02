@@ -1,0 +1,49 @@
+{
+  "expo": {
+    "name": "MyPlayer",
+    "slug": "myplayer",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.myplayer.app"
+    },
+    "android": {
+      "package": "com.myplayer.app",
+      "permissions": [
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "FOREGROUND_SERVICE"
+      ]
+    },
+    "plugins": [
+      [
+        "react-native-vlc-media-player",
+        {
+          "ios": {
+            "includeVLCKit": false
+          },
+          "android": {
+            "legacyJetifier": false
+          }
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow MyPlayer to access videos from your library.",
+          "savePhotosPermission": "Allow MyPlayer to save videos to your library.",
+          "isAccessMediaLocationEnabled": false,
+          "granularPermissions": [
+            "video"
+          ]
+        }
+      ],
+      "expo-document-picker"
+    ]
+  }
+}
