@@ -21,8 +21,8 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import * as ScreenOrientation from 'expo-screen-orientation';
-import { VLCPlayer } from 'react-native-vlc-media-player';
 
+import VideoPlayerSurface from '../components/VideoPlayerSurface';
 import { useSettings } from '../hooks/useSettings';
 import formatTime from '../utils/formatTime';
 
@@ -669,7 +669,7 @@ export default function PlayerScreen({ navigation, route }) {
     <View style={styles.container}>
       <StatusBar animated backgroundColor="#000000" hidden={isFullscreen} translucent />
 
-      <VLCPlayer
+      <VideoPlayerSurface
         ref={playerRef}
         autoplay
         onBuffering={() => setIsBuffering(true)}

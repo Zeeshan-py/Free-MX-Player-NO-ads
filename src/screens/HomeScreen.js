@@ -8,6 +8,7 @@ import React, {
 import {
   ActivityIndicator,
   FlatList,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -66,6 +67,47 @@ function formatSizeInMb(bytes = 0) {
   }
 
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function getWebFolderName(file) {
+  const relativePath = file.webkitRelativePath || '';
+  const segments = relativePath.split('/').filter(Boolean);
+
+  if (segments.length > 1) {
+    return segments[segments.length - 2];
+  }
+
+  return 'Selected Videos';
+}
+
+function getWebFolderPath(file) {
+  const relativePath = file.webkitRelativePath || '';
+  const segments = relativePath.split('/').filter(Boolean);
+
+  if (segments.length > 1) {
+    return segments.slice(0, -1).join('/');
+  }
+
+  return 'Browser selection';
+}
+
+function buildWebVideoItem(file, index) {
+  const uri = URL.createObjectURL(file);
+
+  return {
+    id: `web-${file.name}-${file.lastModified}-${index}`,
+    uri,
+    thumbnailCacheUri: uri,
+    thumbnailUri: uri,
+    filename: file.name,
+    title: stripExtension(file.name),
+    duration: 0,
+    sizeBytes: file.size || 0,
+    folderName: getWebFolderName(file),
+    folderPath: getWebFolderPath(file),
+    creationTime: file.lastModified || 0,
+    modificationTime: file.lastModified || 0,
+  };
 }
 
 function sortVideos(videos, sortBy) {
@@ -142,6 +184,31 @@ export default function HomeScreen({ navigation }) {
     setIsSortMenuVisible((current) => !current);
   }, []);
 
+  const chooseWebVideos = useCallback((chooseFolder = false) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'video/*,.mkv,.avi,.flv,.3gp';
+    input.multiple = true;
+
+    if (chooseFolder) {
+      input.webkitdirectory = true;
+    }
+
+    input.onchange = () => {
+      const selectedFiles = Array.from(input.files || []);
+      const selectedVideos = selectedFiles
+        .filter((file) => ALLOWED_EXTENSIONS.has(getFileExtension(file.name)))
+        .map(buildWebVideoItem);
+
+      setVideos(selectedVideos);
+      setSearchQuery('');
+      setPermissionDenied(false);
+      setErrorMessage('');
+    };
+
+    input.click();
+  }, []);
+
   useLayoutEffect(() => {
     navigation.setOptions({
       title: 'MyPlayer',
@@ -164,6 +231,12 @@ export default function HomeScreen({ navigation }) {
     setPermissionDenied(false);
     setErrorMessage('');
     setIsSortMenuVisible(false);
+
+    if (Platform.OS === 'web') {
+      setVideos([]);
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const permission = await MediaLibrary.requestPermissionsAsync(false, ['video']);
@@ -432,9 +505,20 @@ export default function HomeScreen({ navigation }) {
                 : 'Supported files will appear here after they are detected on your device.'}
             </Text>
             {!searchQuery ? (
-              <Pressable onPress={scanVideos} style={styles.primaryButton}>
-                <Text style={styles.primaryButtonText}>Rescan Library</Text>
-              </Pressable>
+              Platform.OS === 'web' ? (
+                <View style={styles.webPickerActions}>
+                  <Pressable onPress={() => chooseWebVideos(false)} style={styles.primaryButton}>
+                    <Text style={styles.primaryButtonText}>Choose Videos</Text>
+                  </Pressable>
+                  <Pressable onPress={() => chooseWebVideos(true)} style={styles.secondaryButton}>
+                    <Text style={styles.secondaryButtonText}>Choose Folder</Text>
+                  </Pressable>
+                </View>
+              ) : (
+                <Pressable onPress={scanVideos} style={styles.primaryButton}>
+                  <Text style={styles.primaryButtonText}>Rescan Library</Text>
+                </Pressable>
+              )
             ) : null}
           </View>
         }
@@ -499,6 +583,23 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '700',
+  },
+  secondaryButton: {
+    borderColor: '#E53935',
+    borderRadius: 14,
+    borderWidth: 1,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+  },
+  secondaryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  webPickerActions: {
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 20,
   },
   headerActions: {
     flexDirection: 'row',
